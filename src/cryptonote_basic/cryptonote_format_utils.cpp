@@ -42,8 +42,8 @@
 
 using namespace epee;
 
-#undef MORELO_DEFAULT_LOG_CATEGORY
-#define MORELO_DEFAULT_LOG_CATEGORY "cn"
+#undef WALLSTREETBETS_DEFAULT_LOG_CATEGORY
+#define WALLSTREETBETS_DEFAULT_LOG_CATEGORY "cn"
 
 #define ENCRYPTED_PAYMENT_ID_TAIL 0x8d
 
@@ -938,13 +938,13 @@ namespace cryptonote
     switch (std::atomic_load(&default_decimal_point))
     {
       case 9:
-        return "MRL";
+        return "WSBC";
       case 6:
-        return "milliMRL";
+        return "milliWSBC";
       case 3:
-        return "microMRL";
+        return "microWSBC";
       case 0:
-        return "nanoMRL";
+        return "nanoWSBC";
       default:
         ASSERT_MES_AND_THROW("Invalid decimal point specification: " << default_decimal_point);
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2020 The Morelo Project
+// Copyright (c) 2020 The Wallstreetbets Project
 // Copyright (c) 2018-2019, The Arqma Network
 // Copyright (c) 2014-2018, The Monero Project
 //
@@ -58,8 +58,8 @@
 #include "common/varint.h"
 #include "common/pruning.h"
 
-#undef MORELO_DEFAULT_LOG_CATEGORY
-#define MORELO_DEFAULT_LOG_CATEGORY "blockchain"
+#undef WALLSTREETBETS_DEFAULT_LOG_CATEGORY
+#define WALLSTREETBETS_DEFAULT_LOG_CATEGORY "blockchain"
 
 #define FIND_BLOCKCHAIN_SUPPLEMENT_MAX_SIZE (100*1024*1024) // 100 MB
 
@@ -81,7 +81,7 @@ DISABLE_VS_WARNINGS(4267)
 #define MERROR_VER(x) MCERROR("verify", x)
 
 // used to overestimate the block reward when estimating a per kB to use
-#define BLOCK_REWARD_OVERESTIMATE (10 * 1000000000000)
+#define BLOCK_REWARD_OVERESTIMATE (1 * 1000000000000)
 
 static const struct {
  uint8_t version;
@@ -90,9 +90,9 @@ static const struct {
  time_t time;
 } mainnet_hard_forks[] = {
  // version 1 from the start of the blockchain
- { 1, 0, 0, 1581800400 },
- { 15, 1, 0, 1581806100 },
- { 16, 156700, 0, 1603132800 },
+ { 1, 0, 0, 1613599975 },
+ { 15, 1, 0, 1613600045 },
+
 };
 
 static const struct {
@@ -102,8 +102,10 @@ static const struct {
  time_t time;
 } testnet_hard_forks[] = {
  // version 1 from the start of the blockchain
- { 1, 0, 0, 1581800400 },
- { 15, 1, 0, 1581806100 },
+ { 1, 0, 0, 1613599975 },
+ { 15, 1, 0, 1613600045 },
+
+
 };
 
 static const struct {
@@ -113,9 +115,9 @@ static const struct {
  time_t time;
 } stagenet_hard_forks[] = {
  // version 1 from the start of the blockchain
- { 1, 0, 0, 1581800400 },
- { 15, 1, 0, 1581806100 },
- { 16, 50, 0, 1601146980 },
+ { 1, 0, 0, 1613599975 },
+ { 15, 1, 0, 1613600045 },
+
 };
 
 //------------------------------------------------------------------
@@ -479,7 +481,7 @@ bool Blockchain::init(BlockchainDB* db, const network_type nettype, bool offline
     }
     catch(const std::exception& e)
     {
-      MERROR(std::string("Failed to construct morelo notifier ") + e.what());
+      MERROR(std::string("Failed to construct wallstreetbets notifier ") + e.what());
     }
  }
   return true;
@@ -626,7 +628,7 @@ block Blockchain::pop_block_from_blockchain()
   block popped_block;
   std::vector<transaction> popped_txs;
 
-  CHECK_AND_ASSERT_THROW_MES(m_db->height() > 1, "It is forbidden to remove Morelo Genesis Block.");
+  CHECK_AND_ASSERT_THROW_MES(m_db->height() > 1, "It is forbidden to remove Wallstreetbets Genesis Block.");
 
   try
   {
@@ -1301,7 +1303,7 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height)
     return false;
   }
   MDEBUG("Miner tx hash: " << get_transaction_hash(b.miner_tx));
-  CHECK_AND_ASSERT_MES(b.miner_tx.unlock_time == height + config::blockchain_settings::MORELO_BLOCK_UNLOCK_CONFIRMATIONS, false, "coinbase transaction transaction has the wrong unlock time=" << b.miner_tx.unlock_time << ", expected " << height + config::blockchain_settings::MORELO_BLOCK_UNLOCK_CONFIRMATIONS);
+  CHECK_AND_ASSERT_MES(b.miner_tx.unlock_time == height + config::blockchain_settings::WALLSTREETBETS_BLOCK_UNLOCK_CONFIRMATIONS, false, "coinbase transaction transaction has the wrong unlock time=" << b.miner_tx.unlock_time << ", expected " << height + config::blockchain_settings::WALLSTREETBETS_BLOCK_UNLOCK_CONFIRMATIONS);
 
   //check outs overflow
   //NOTE: not entirely sure this is necessary, given that this function is
@@ -1370,7 +1372,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
 
   if(height == 1)
   {
-    base_reward = config::blockchain_settings::MORELO_PREMINE;
+    base_reward = config::blockchain_settings::WALLSTREETBETS_PREMINE;
   }
 
   if(height > 1 && base_reward + fee < money_in_use)
@@ -2085,7 +2087,7 @@ uint64_t Blockchain::get_num_mature_outputs(uint64_t amount) const
   {
     const tx_out_index toi = m_db->get_output_tx_and_index(amount, num_outs - 1);
     const uint64_t height = m_db->get_tx_block_height(toi.first);
-    if (height + config::tx_settings::MORELO_TX_CONFIRMATIONS_REQUIRED <= blockchain_height)
+    if (height + config::tx_settings::WALLSTREETBETS_TX_CONFIRMATIONS_REQUIRED <= blockchain_height)
       break;
     --num_outs;
   }
@@ -2156,7 +2158,7 @@ void Blockchain::get_output_key_mask_unlocked(const uint64_t& amount, const uint
 bool Blockchain::get_output_distribution(uint64_t amount, uint64_t from_height, uint64_t to_height, uint64_t &start_height, std::vector<uint64_t> &distribution, uint64_t &base) const
 {
   // rct outputs don't exist before v4
-  // Morelo did start from v7 at blockheight 1 so our start is always 0
+  // Wallstreetbets did start from v7 at blockheight 1 so our start is always 0
 
   start_height = 0;
   base = 0;
@@ -3706,7 +3708,7 @@ leave:
     const el::Level level = el::Level::Warning;
     MCLOG_RED(level, "global", "**********************************************************************");
     MCLOG_RED(level, "global", "A block was seen on the network with a version higher than the last");
-    MCLOG_RED(level, "global", "known one. This may be an old version of the Morelo daemon, and a software");
+    MCLOG_RED(level, "global", "known one. This may be an old version of the Wallstreetbets daemon, and a software");
     MCLOG_RED(level, "global", "update may be required to sync further. ");
     MCLOG_RED(level, "global", "**********************************************************************");
   }
@@ -4058,7 +4060,7 @@ leave:
     }
     catch( const std::exception &e)
     {
-      MERROR(std::string("Failed to construct morelo block producer") + e.what());
+      MERROR(std::string("Failed to construct wallstreetbets block producer") + e.what());
     }
   }
 
@@ -5054,7 +5056,7 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
-static const char expected_block_hashes_hash[] = "2f472e2c74b3f01562bebe41ab74cde06b0c4719e7a92ea50257277f0a0b03ee";
+static const char expected_block_hashes_hash[] = "5618f2ace61540919f64c402f4756151efe0862c3070552276441a32a52c5c80";
 void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get_checkpoints)
 {
   if (get_checkpoints == nullptr || !m_fast_sync)

@@ -42,8 +42,8 @@
 #include <ctime>
 #include <string>
 
-#undef MORELO_DEFAULT_LOG_CATEGORY
-#define MORELO_DEFAULT_LOG_CATEGORY "daemon"
+#undef WALLSTREETBETS_DEFAULT_LOG_CATEGORY
+#define WALLSTREETBETS_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize {
 
@@ -1219,8 +1219,8 @@ bool t_rpc_command_executor::stop_daemon()
 //# ifdef WIN32
 //    // Stop via service API
 //    // TODO - this is only temporary!  Get rid of hard-coded constants!
-//    bool ok = windows::stop_service("Morelo Daemon");
-//    ok = windows::uninstall_service("Morelo Daemon");
+//    bool ok = windows::stop_service("Wallstreetbets Daemon");
+//    ok = windows::uninstall_service("Wallstreetbets Daemon");
 //    //bool ok = windows::stop_service(SERVICE_NAME);
 //    //ok = windows::uninstall_service(SERVICE_NAME);
 //    if (ok)
@@ -1264,10 +1264,10 @@ bool t_rpc_command_executor::print_status()
   bool daemon_is_alive = m_rpc_client->check_connection();
 
   if(daemon_is_alive) {
-    tools::success_msg_writer() << "morelod is running";
+    tools::success_msg_writer() << "wallstreetbetsd is running";
   }
   else {
-    tools::fail_msg_writer() << "morelod is NOT running";
+    tools::fail_msg_writer() << "wallstreetbetsd is NOT running";
   }
 
   return true;

@@ -1,5 +1,6 @@
 # Copyright (c) 2018-2019, The Arqma Network
 # Copyright (c) 2014-2018, The Monero Project
+# Copyright (c) 2021-2021, WallStreetBets Coin - WSBC
 #
 # All rights reserved.
 #
@@ -49,9 +50,9 @@ set(wallet_private_headers
   node_rpc_proxy.h
   wallet_rpc_helpers.h)
 
-morelo_private_headers(wallet
+wallstreetbets_private_headers(wallet
   ${wallet_private_headers})
-morelo_add_library(wallet
+wallstreetbets_add_library(wallet
   ${wallet_sources}
   ${wallet_private_headers})
 target_link_libraries(wallet
@@ -82,9 +83,9 @@ if(NOT IOS)
   set(wallet_rpc_private_headers
     wallet_rpc_server.h)
 
-  morelo_private_headers(wallet_rpc_server
+  wallstreetbets_private_headers(wallet_rpc_server
     ${wallet_rpc_private_headers})
-  morelo_add_executable(wallet_rpc_server
+  wallstreetbets_add_executable(wallet_rpc_server
     ${wallet_rpc_sources}
     ${wallet_rpc_headers}
     ${wallet_rpc_private_headers})
@@ -108,7 +109,7 @@ if(NOT IOS)
       ${EXTRA_LIBRARIES})
   set_property(TARGET wallet_rpc_server
     PROPERTY
-      OUTPUT_NAME "morelo-wallet-rpc")
+      OUTPUT_NAME "wallstreetbets-wallet-rpc")
   install(TARGETS wallet_rpc_server DESTINATION bin)
 endif()
 

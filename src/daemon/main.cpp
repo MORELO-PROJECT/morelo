@@ -45,15 +45,15 @@
 #include "rpc/core_rpc_server.h"
 #include "rpc/rpc_args.h"
 #include "daemon/command_line_args.h"
-#include "morelo_mq/moreloMQ.h"
+#include "wallstreetbets_mq/wallstreetbetsMQ.h"
 #include "version.h"
 
 #ifdef STACK_TRACE
 #include "common/stack_trace.h"
 #endif // STACK_TRACE
 
-#undef MORELO_DEFAULT_LOG_CATEGORY
-#define MORELO_DEFAULT_LOG_CATEGORY "daemon"
+#undef WALLSTREETBETS_DEFAULT_LOG_CATEGORY
+#define WALLSTREETBETS_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace po = boost::program_options;
 namespace bf = boost::filesystem;
@@ -109,6 +109,59 @@ uint16_t parse_public_rpc_port(const po::variables_map &vm)
   return rpc_port;
 }
 
+// Helper function to generate genesis transaction made by TheDevMinerTV#9308
+void print_genesis_tx_hex(uint8_t nettype, std::string net_type)
+{
+  using namespace cryptonote;
+
+  account_base miner_acc1;
+  miner_acc1.generate();
+
+  std::cout << "Generating miner wallet..." << std::endl;
+  std::cout << "Miner account address:" << std::endl;
+  std::cout << cryptonote::get_account_address_as_str((network_type)nettype, false, miner_acc1.get_keys().m_account_address);
+  std::cout << std::endl << "Miner spend secret key:"  << std::endl;
+  epee::to_hex::formatted(std::cout, epee::as_byte_span(miner_acc1.get_keys().m_spend_secret_key));
+  std::cout << std::endl << "Miner view secret key:" << std::endl;
+  epee::to_hex::formatted(std::cout, epee::as_byte_span(miner_acc1.get_keys().m_view_secret_key));
+  std::cout << std::endl << std::endl;
+
+  //Create file with miner keys information
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+  std::stringstream key_fine_name_ss;
+  key_fine_name_ss << "./premine_keys_" << std::put_time(&tm, "%Y%m%d%H%M%S") << ".txt";
+  std::string key_file_name = key_fine_name_ss.str();
+  std::ofstream miner_key_file;
+  miner_key_file.open (key_file_name);
+  miner_key_file << "Network type:" << std::endl;
+  miner_key_file << net_type << std::endl;
+  miner_key_file << "Miner account address:" << std::endl;
+  miner_key_file << cryptonote::get_account_address_as_str((network_type)nettype, false, miner_acc1.get_keys().m_account_address) << std::endl;
+  miner_key_file << "Miner spend secret key:" << std::endl;
+  epee::to_hex::formatted(miner_key_file, epee::as_byte_span(miner_acc1.get_keys().m_spend_secret_key));
+  miner_key_file << std::endl << "Miner view secret key:" << std::endl;
+  epee::to_hex::formatted(miner_key_file, epee::as_byte_span(miner_acc1.get_keys().m_view_secret_key));
+  miner_key_file << std::endl;
+  miner_key_file.close();
+
+  //Prepare genesis_tx
+  cryptonote::transaction tx_genesis;
+  cryptonote::construct_miner_tx(0, 0, 0, 10, 0, miner_acc1.get_keys().m_account_address, tx_genesis);
+
+  std::cout << "Transaction object:" << std::endl;
+  std::cout << obj_to_json_str(tx_genesis) << std::endl << std::endl;
+
+  std::stringstream ss;
+  binary_archive<true> ba(ss);
+  ::serialization::serialize(ba, tx_genesis);
+  std::string tx_hex = ss.str();
+  std::cout << "Insert this line into your coin configuration file: " << std::endl;
+  std::cout << "std::string const GENESIS_TX = \"" << string_tools::buff_to_hex_nodelimer(tx_hex) << "\";" << std::endl;
+
+  return;
+}
+
 int main(int argc, char const * argv[])
 {
   try {
@@ -132,6 +185,7 @@ int main(int argc, char const * argv[])
       command_line::add_arg(visible_options, command_line::arg_version);
       command_line::add_arg(visible_options, daemon_args::arg_os_version);
       command_line::add_arg(visible_options, daemon_args::arg_config_file);
+      command_line::add_arg(visible_options, daemon_args::arg_make_genesis_tx);
 
       // Settings
       command_line::add_arg(core_settings, daemon_args::arg_log_file);
@@ -175,16 +229,16 @@ int main(int argc, char const * argv[])
 
     if (command_line::get_arg(vm, command_line::arg_help))
     {
-      std::cout << "Morelo '" << MORELO_RELEASE_NAME << "' (v" << MORELO_VERSION_FULL << ")" << ENDL << ENDL;
+      std::cout << "Wallstreetbets '" << WALLSTREETBETS_RELEASE_NAME << "' (v" << WALLSTREETBETS_VERSION_FULL << ")" << ENDL << ENDL;
       std::cout << "Usage: " + std::string{argv[0]} + " [options|settings] [daemon_command...]" << std::endl << std::endl;
       std::cout << visible_options << std::endl;
       return 0;
     }
 
-    // Morelo Version
+    // Wallstreetbets Version
     if (command_line::get_arg(vm, command_line::arg_version))
     {
-      std::cout << "Morelo '" << MORELO_RELEASE_NAME << "' (v" << MORELO_VERSION_FULL << ")" << ENDL;
+      std::cout << "Wallstreetbets '" << WALLSTREETBETS_RELEASE_NAME << "' (v" << WALLSTREETBETS_VERSION_FULL << ")" << ENDL;
       return 0;
     }
 
@@ -225,9 +279,32 @@ int main(int argc, char const * argv[])
       std::cerr << "Can't specify more than one of --tesnet and --stagenet and --regtest" << ENDL;
       return 1;
     }
+   // Make genesis tx
+    unsigned int genesis_tx_type = command_line::get_arg(vm, daemon_args::arg_make_genesis_tx);
+    switch (genesis_tx_type)
+    {
+      case 1:
+        print_genesis_tx_hex(cryptonote::MAINNET, "mainnet");
+        return 0;
 
+      case 2:
+        print_genesis_tx_hex(cryptonote::TESTNET, "testnet");
+        return 0;
+
+      case 3:
+        print_genesis_tx_hex(cryptonote::STAGENET, "stagenet");
+        return 0;
+
+      default:
+        if(genesis_tx_type > 3)
+        {
+          std::cout << "You might have messed something up, this should be 1 to 3, everything else will be ignored." << ENDL;
+          return 1;
+        }
+      break;
+    }
     // data_dir
-    //   default: e.g. ~/.morelo/ or ~/.morelo/testnet
+    //   default: e.g. ~/.wallstreetbets/ or ~/.wallstreetbets/testnet
     //   if data-dir argument given:
     //     absolute path
     //     relative path: relative to cwd
@@ -270,7 +347,7 @@ int main(int argc, char const * argv[])
 	  tools::set_max_concurrency(command_line::get_arg(vm, daemon_args::arg_max_concurrency));
 
 	// logging is now set up
-	MGINFO("Morelo '" << MORELO_RELEASE_NAME << "' (v" << MORELO_VERSION_FULL << ")");
+	MGINFO("Wallstreetbets '" << WALLSTREETBETS_RELEASE_NAME << "' (v" << WALLSTREETBETS_VERSION_FULL << ")");
 
 
     // If there are positional options, we're running a daemon command
