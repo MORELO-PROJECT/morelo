@@ -4,4 +4,4 @@
   </a>
 </p>
 
-Repository is closed. We moved to new one: https://github.com/MoreloNetwork
+Repository is closed. We moved to new one: https://github.com/MoreloNetwork/morelo
